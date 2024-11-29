@@ -112,5 +112,19 @@ router.get('/:orderId', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch order details' });
   }
 });
+// get customer details by phone number
+router.get('/phone/:phoneNumber', async (req, res) => {
+  try {
+    const phoneNumber = req.params.phoneNumber;
+    const customer = await customersCollection.findOne({ phoneNumber });
+    if (!customer) {
+      return res.status(404).json({ error: 'Customer not found with the given phone number' });
+    }
+    res.json(customer);
+  } catch (error) {
+    console.error('Error fetching customer details by phone number:', error);
+    res.status(500).json({ error: 'Failed to fetch customer details by phone number' });
+  }
+});
 
 export default router;
