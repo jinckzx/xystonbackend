@@ -48,7 +48,7 @@ import lookbookRoute from './routes/lookbook.js';
 import productRoute from './routes/product.js';
 import checkoutRoute from './routes/checkout.js';
 import customerRoute from './routes/customer.js';
-import  watchPaymentStatus from './routes/paymentWatcher.js';
+// import  watchPaymentStatus from './routes/paymentWatcher.js';
 
 // Load environment variables
 dotenv.config();
@@ -63,8 +63,8 @@ app.use(express.json());
 // MongoDB connection
 const uri = process.env.MONGODB_URI;
 mongoose.connect(uri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
+  //useNewUrlParser: true,
+  // useUnifiedTopology: true,
   maxPoolSize: 10,  // Limit connection pool size
   serverSelectionTimeoutMS: 5000, // Timeout after 5 seconds
   socketTimeoutMS: 45000 // Close sockets after 45 seconds of inactivity
@@ -97,19 +97,28 @@ const server = app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
   
 });
-setTimeout(() => {
-  watchPaymentStatus();
-  console.log('Payment watcher started after 4 seconds');
-}, 2000);
+// setTimeout(() => {
+//   watchPaymentStatus();
+//   console.log('Payment watcher started after 4 seconds');
+// }, 2000);
 // Graceful shutdown
-process.on('SIGINT', () => {
-  server.close(() => {
+process.on('SIGINT', async () => {
+  try {
+    // First close the server
+    await server.close();
     console.log('Server stopped');
-    mongoose.connection.close(false, () => {
-      console.log('MongoDB connection closed');
-      process.exit(0);
-    });
-  });
+    
+    // Then close the MongoDB connection
+    await mongoose.connection.close();
+    console.log('MongoDB connection closed');
+    
+    // Exit the process
+    process.exit(0);
+  } catch (err) {
+    console.error('Error during shutdown:', err);
+    process.exit(1); // Exit with failure status
+  }
 });
+
 
 export default app;
